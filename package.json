@@ -1,0 +1,54 @@
+{
+  "name": "delete-test-01",
+  "description": "delete-test-01-description",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.398.0",
+    "@aws-sdk/lib-dynamodb": "^3.398.0"
+  },
+  "devDependencies": {
+    "aws-sdk-client-mock": "^2.0.0",
+    "jest": "^29.2.1",
+    "typescript": "^5.3.0",
+    "@types/node": "^20.10.0",
+    "@types/aws-lambda": "^8.10.0",
+    "@types/jest": "^29.5.0",
+    "ts-jest": "^29.1.0",
+    "ts-node": "^10.9.0",
+    "esbuild": "^0.19.0"
+  },
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "build": "tsc",
+    "build:esbuild": "esbuild src/handlers/*.ts --bundle --platform=node --target=node18 --outdir=dist --format=cjs",
+    "clean": "rm -rf dist",
+    "sam:deploy:dev": "sam build && sam deploy --config-env dev",
+    "sam:deploy:prod": "sam build && sam deploy --config-env prod"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/__tests__/**/*.[jt]s?(x)",
+      "**/?(*.)+(spec|test).[jt]s?(x)"
+    ],
+    "testPathIgnorePatterns": [
+      "node_modules",
+      "dist",
+      "coverage",
+      ".aws-sam"
+    ],
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "mjs"
+    ],
+    "transform": {
+      "^.+\\.(ts|tsx)$": "ts-jest"
+    }
+  }
+}
