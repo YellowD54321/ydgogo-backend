@@ -1,5 +1,9 @@
 import { OAuth2Client } from 'google-auth-library';
 import { GOOGLE_TOKEN_ISSUERS } from '@/constants';
+import { QueryCommand, BatchWriteCommand } from '@aws-sdk/lib-dynamodb';
+import { getDynamoDBClient, getEnvironmentVariables } from '@/utils';
+import { v7 as uuidv7 } from 'uuid';
+import { USER_CONFIG } from '@/constants/db';
 
 export interface GoogleUserInfo {
   sub: string;
@@ -9,7 +13,7 @@ export interface GoogleUserInfo {
 /**
  * 懶加載 OAuth2Client 實例
  */
-function getOAuth2Client(): OAuth2Client {
+const getOAuth2Client = (): OAuth2Client => {
   const googleClientId = process.env['GOOGLE_CLIENT_ID'];
 
   if (!googleClientId) {
@@ -19,7 +23,7 @@ function getOAuth2Client(): OAuth2Client {
   const client = new OAuth2Client(googleClientId);
 
   return client;
-}
+};
 
 /**
  * 驗證 Google ID Token
@@ -27,9 +31,9 @@ function getOAuth2Client(): OAuth2Client {
  * @returns GoogleUserInfo
  * @throws Error 如果驗證失敗或配置錯誤
  */
-export async function verifyGoogleIdToken(
+export const verifyGoogleIdToken = async (
   idToken: string
-): Promise<GoogleUserInfo> {
+): Promise<GoogleUserInfo> => {
   try {
     const oauthClient = getOAuth2Client();
     const googleClientId = process.env['GOOGLE_CLIENT_ID']!;
@@ -66,7 +70,105 @@ export async function verifyGoogleIdToken(
       email: payload.email,
     };
   } catch (error) {
-    console.error('Error verifying Google ID token:', error);
+    console.error('Error verifyGoogleIdToken:', error);
     throw error;
   }
-}
+};
+
+export const getUserByGoogleSub = async (googleSub: string): Promise<any> => {
+  try {
+    const db = getDynamoDBClient();
+    const { TABLE_NAME, GSI_GOOGLE_SUB_NAME } = getEnvironmentVariables();
+
+    const params = {
+      TableName: TABLE_NAME,
+      IndexName: GSI_GOOGLE_SUB_NAME,
+      KeyConditionExpression: 'googleSub = :sub',
+      ExpressionAttributeValues: {
+        ':sub': googleSub,
+      },
+    };
+
+    const result = await db.send(new QueryCommand(params));
+
+    if (result.Items && result.Items.length > 0) {
+      return result.Items[0];
+    }
+
+    return null;
+  } catch (error) {
+    console.error('Error getUserByGoogleSub:', error);
+    throw error;
+  }
+};
+
+// 檢查使用者是否已存在
+export const checkExistingUser = async (googleSub: string): Promise<any> => {
+  try {
+    const user = await getUserByGoogleSub(googleSub);
+
+    if (user) {
+      return true;
+    }
+
+    return false;
+  } catch (error) {
+    console.error('Error checkExistingUser:', error);
+    throw error;
+  }
+};
+
+// 建立新使用者
+export const createNewUser = async (
+  googleUserInfo: GoogleUserInfo
+): Promise<any> => {
+  try {
+    const db = getDynamoDBClient();
+    const { TABLE_NAME } = getEnvironmentVariables();
+
+    const userId = uuidv7();
+    const userPK = `${USER_CONFIG.PK_PREFIX}${userId}`;
+    const now = new Date().toISOString();
+
+    const requestItems = [
+      {
+        PutRequest: {
+          Item: {
+            PK: userPK,
+            SK: USER_CONFIG.SK_PROFILE,
+            userId: userId,
+            createdAt: now,
+            updatedAt: now,
+          },
+        },
+      },
+      {
+        PutRequest: {
+          Item: {
+            PK: userPK,
+            SK: USER_CONFIG.AUTH_GOOGLE,
+            googleSub: googleUserInfo.sub,
+            email: googleUserInfo.email,
+            authProvider: 'Google',
+          },
+        },
+      },
+    ];
+
+    const batchParams = {
+      RequestItems: {
+        [TABLE_NAME]: requestItems,
+      },
+    };
+
+    await db.send(new BatchWriteCommand(batchParams));
+
+    return {
+      userId,
+      createdAt: now,
+    };
+  } catch (error) {
+    console.error('Error createNewUser:', error);
+    throw error;
+  }
+};
