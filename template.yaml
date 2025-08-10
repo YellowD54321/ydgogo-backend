@@ -9,19 +9,67 @@ Parameters:
     Type: String
     Default: dev
     Description: API Gateway deployment stage
+  GoogleClientId:
+    Type: String
+    Description: Google OAuth Client ID
+    NoEcho: true
+    Default: ''
 
 Resources:
+  # DynamoDB 資料表 - 單表設計
+  YdgogoTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${AWS::StackName}-${Stage}-ydgogo'
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: PK
+          AttributeType: S
+        - AttributeName: SK
+          AttributeType: S
+        - AttributeName: googleSub
+          AttributeType: S
+      KeySchema:
+        - AttributeName: PK
+          KeyType: HASH
+        - AttributeName: SK
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: byGoogleSub-gsi
+          KeySchema:
+            - AttributeName: googleSub
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      Tags:
+        - Key: Environment
+          Value: !Ref Stage
+        - Key: Project
+          Value: ydgogo
+
   googleLoginFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: 'es2020'
+        Sourcemap: true
+        EntryPoints:
+          - src/handlers/login/googleLogin/googleLogin.ts
     Properties:
-      CodeUri: dist/
-      Handler: handlers/login/googleLogin/googleLogin.googleLoginHandler
+      CodeUri: .
+      Handler: dist/handlers/login/googleLogin/googleLogin.googleLoginHandler
       Runtime: nodejs22.x
       Architectures:
         - x86_64
       MemorySize: 128
       Timeout: 100
-      Description: My first typescript lambda function
+      Description: Google OAuth login handler
       Events:
         Api:
           Type: Api
@@ -31,6 +79,77 @@ Resources:
       Environment:
         Variables:
           NODE_OPTIONS: '--enable-source-maps'
+          TABLE_NAME: !Ref YdgogoTable
+          GSI_GOOGLE_SUB_NAME: 'byGoogleSub-gsi'
+          STAGE: !Ref Stage
+          GOOGLE_CLIENT_ID: !Ref GoogleClientId
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref YdgogoTable
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:Query
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+                - dynamodb:UpdateItem
+                - dynamodb:DeleteItem
+                - dynamodb:Scan
+              Resource:
+                - !GetAtt YdgogoTable.Arn
+                - !Sub '${YdgogoTable.Arn}/index/*'
+
+  googleRegisterFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: 'es2020'
+        Sourcemap: true
+        EntryPoints:
+          - src/handlers/register/googleRegister/googleRegister.ts
+    Properties:
+      CodeUri: .
+      Handler: dist/handlers/register/googleRegister/googleRegister.googleRegisterHandler
+      Runtime: nodejs22.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: Google OAuth register handler
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /register/googleOauth
+            Method: POST
+      Environment:
+        Variables:
+          NODE_OPTIONS: '--enable-source-maps'
+          TABLE_NAME: !Ref YdgogoTable
+          GSI_GOOGLE_SUB_NAME: 'byGoogleSub-gsi'
+          STAGE: !Ref Stage
+          GOOGLE_CLIENT_ID: !Ref GoogleClientId
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref YdgogoTable
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:Query
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+                - dynamodb:UpdateItem
+                - dynamodb:DeleteItem
+                - dynamodb:Scan
+                - dynamodb:BatchWriteItem
+              Resource:
+                - !GetAtt YdgogoTable.Arn
+                - !Sub '${YdgogoTable.Arn}/index/*'
+
   ApplicationResourceGroup:
     Type: AWS::ResourceGroups::Group
     Properties:
@@ -44,10 +163,18 @@ Resources:
       ResourceGroupName:
         Ref: ApplicationResourceGroup
       AutoConfigurationEnabled: 'true'
+
 Outputs:
   WebEndpoint:
     Description: API Gateway endpoint URL for deployment stage
     Value: !Sub 'https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/'
+
+  YdgogoTableName:
+    Description: Name of the DynamoDB table for all data
+    Value: !Ref YdgogoTable
+    Export:
+      Name: !Sub '${AWS::StackName}-${Stage}-YdgogoTable'
+
 # # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
   Function:

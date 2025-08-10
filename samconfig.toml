@@ -25,9 +25,11 @@ watch = true
 
 [default.local_start_api.parameters]
 warm_containers = "EAGER"
+parameter_overrides = "GoogleClientId=\"${GOOGLE_CLIENT_ID}\""
 
 [default.local_start_lambda.parameters]
 warm_containers = "EAGER"
+parameter_overrides = "GoogleClientId=\"${GOOGLE_CLIENT_ID}\""
 
 [dev.deploy.parameters]
 stack_name = "ydgogo"
@@ -37,5 +39,16 @@ region = "ap-southeast-2"
 confirm_changeset = true
 capabilities = "CAPABILITY_IAM"
 disable_rollback = true
-parameter_overrides = "Stage=\"dev\""
+parameter_overrides = "Stage=\"dev\" GoogleClientId=\"{{resolve:ssm:/ydgogo/google-client-id}}\""
+image_repositories = []
+
+[prod.deploy.parameters]
+stack_name = "ydgogo-prod"
+resolve_s3 = true
+s3_prefix = "ydgogo-prod"
+region = "ap-southeast-2"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+disable_rollback = true
+parameter_overrides = "Stage=\"prod\" GoogleClientId=\"{{resolve:ssm:/ydgogo/google-client-id}}\""
 image_repositories = []
