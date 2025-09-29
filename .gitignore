@@ -13,6 +13,9 @@ out/
 .aws-sam/
 samconfig.toml.bak
 
+# DynamoDB
+dynamodb_data/
+
 # Environment variables
 .env
 .env.local

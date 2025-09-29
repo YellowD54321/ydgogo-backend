@@ -80,6 +80,14 @@ export const getUserByGoogleSub = async (googleSub: string): Promise<any> => {
     const db = getDynamoDBClient();
     const { TABLE_NAME, GSI_GOOGLE_SUB_NAME } = getEnvironmentVariables();
 
+    try {
+      const { ListTablesCommand } = await import('@aws-sdk/client-dynamodb');
+      const listResult = await db.send(new ListTablesCommand({}));
+      console.log('Available tables:', listResult.TableNames);
+    } catch (listError) {
+      console.error('Error listing tables:', listError);
+    }
+
     const params = {
       TableName: TABLE_NAME,
       IndexName: GSI_GOOGLE_SUB_NAME,
@@ -102,7 +110,6 @@ export const getUserByGoogleSub = async (googleSub: string): Promise<any> => {
   }
 };
 
-// 檢查使用者是否已存在
 export const checkExistingUser = async (googleSub: string): Promise<any> => {
   try {
     const user = await getUserByGoogleSub(googleSub);
@@ -118,7 +125,6 @@ export const checkExistingUser = async (googleSub: string): Promise<any> => {
   }
 };
 
-// 建立新使用者
 export const createNewUser = async (
   googleUserInfo: GoogleUserInfo
 ): Promise<any> => {

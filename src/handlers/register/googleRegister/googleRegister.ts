@@ -18,8 +18,6 @@ export const googleRegisterHandler = async (
   event: APIGatewayProxyEvent,
   context: Context
 ): Promise<APIGatewayProxyResult> => {
-  console.log('Event:', JSON.stringify(event, null, 2));
-
   try {
     const body = event.body ? JSON.parse(event.body) : {};
     const { idToken }: RegisterRequest = body;

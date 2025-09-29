@@ -1,0 +1,64 @@
+{
+  "Table": {
+    "AttributeDefinitions": [
+      {
+        "AttributeName": "PK",
+        "AttributeType": "S"
+      },
+      {
+        "AttributeName": "SK",
+        "AttributeType": "S"
+      },
+      {
+        "AttributeName": "googleSub",
+        "AttributeType": "S"
+      }
+    ],
+    "TableName": "ydgogo-dev-ydgogo",
+    "KeySchema": [
+      {
+        "AttributeName": "PK",
+        "KeyType": "HASH"
+      },
+      {
+        "AttributeName": "SK",
+        "KeyType": "RANGE"
+      }
+    ],
+    "TableStatus": "ACTIVE",
+    "CreationDateTime": "2025-08-10T19:10:55.646000+08:00",
+    "ProvisionedThroughput": {
+      "LastIncreaseDateTime": "1970-01-01T08:00:00+08:00",
+      "LastDecreaseDateTime": "1970-01-01T08:00:00+08:00",
+      "NumberOfDecreasesToday": 0,
+      "ReadCapacityUnits": 0,
+      "WriteCapacityUnits": 0
+    },
+    "TableSizeBytes": 288,
+    "ItemCount": 2,
+    "TableArn": "arn:aws:dynamodb:ddblocal:000000000000:table/ydgogo-dev-ydgogo",
+    "BillingModeSummary": {
+      "BillingMode": "PAY_PER_REQUEST",
+      "LastUpdateToPayPerRequestDateTime": "2025-08-10T19:10:55.646000+08:00"
+    },
+    "GlobalSecondaryIndexes": [
+      {
+        "IndexName": "byGoogleSub-gsi",
+        "KeySchema": [
+          {
+            "AttributeName": "googleSub",
+            "KeyType": "HASH"
+          }
+        ],
+        "Projection": {
+          "ProjectionType": "ALL"
+        },
+        "IndexStatus": "ACTIVE",
+        "IndexSizeBytes": 128,
+        "ItemCount": 1,
+        "IndexArn": "arn:aws:dynamodb:ddblocal:000000000000:table/ydgogo-dev-ydgogo/index/byGoogleSub-gsi"
+      }
+    ],
+    "DeletionProtectionEnabled": false
+  }
+}

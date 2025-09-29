@@ -4,9 +4,16 @@ import { APIGatewayProxyResult } from 'aws-lambda';
 
 let dynamoDBClient: DynamoDBDocumentClient | null = null;
 
-// 初始化 DynamoDB 客戶端
+const dynamoDBClientOptions = {
+  endpoint: 'http://ddb-local:8000',
+  credentials: {
+    accessKeyId: 'dummyKeyId',
+    secretAccessKey: 'dummySecretKey',
+  },
+};
+
 export const createDynamoDBClient = () => {
-  const ddbClient = new DynamoDBClient({});
+  const ddbClient = new DynamoDBClient(dynamoDBClientOptions);
   return DynamoDBDocumentClient.from(ddbClient);
 };
 
@@ -17,7 +24,6 @@ export const getDynamoDBClient = () => {
   return dynamoDBClient;
 };
 
-// 環境變數取得
 export const getEnvironmentVariables = () => {
   const tableName = process.env['TABLE_NAME'];
   if (!tableName) {
@@ -41,7 +47,6 @@ export const getEnvironmentVariables = () => {
   };
 };
 
-// 標準 API 回應格式
 export const createResponse = (
   statusCode: number,
   body: Record<string, unknown> | string | null,
@@ -64,7 +69,6 @@ export const createResponse = (
   };
 };
 
-// 錯誤回應格式
 export const createErrorResponse = (
   statusCode: number,
   error: string,
@@ -76,7 +80,6 @@ export const createErrorResponse = (
   });
 };
 
-// 成功回應格式
 export const createSuccessResponse = (
   statusCode: number = 200,
   data: any
