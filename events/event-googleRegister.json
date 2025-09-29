@@ -1,0 +1,17 @@
+{
+  "body": "{\"idToken\":\"test.eyJzdWIiOiIxMjM0NTY3ODkwIiwiZW1haWwiOiJ0ZXN0QGV4YW1wbGUuY29tIiwibmFtZSI6IlRlc3QgVXNlciJ9.signature\",\"nickname\":\"圍棋高手\"}",
+  "httpMethod": "POST",
+  "path": "/register/googleOauth",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "requestContext": {
+    "httpMethod": "POST",
+    "path": "/register/googleOauth",
+    "stage": "local",
+    "requestId": "test-request-id",
+    "identity": {
+      "sourceIp": "127.0.0.1"
+    }
+  }
+}
