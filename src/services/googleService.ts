@@ -1,9 +1,10 @@
 import { OAuth2Client } from 'google-auth-library';
 import { GOOGLE_TOKEN_ISSUERS } from '@/constants';
-import { QueryCommand, BatchWriteCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
+import { QueryCommand, BatchWriteCommand, GetCommand,  } from '@aws-sdk/lib-dynamodb';
 import { getDynamoDBClient, getEnvironmentVariables } from '@/utils';
 import { v7 as uuidv7 } from 'uuid';
 import { USER_CONFIG } from '@/constants/db';
+import { ListTablesCommand } from '@aws-sdk/client-dynamodb';
 
 export interface GoogleUserInfo {
   sub: string;
@@ -81,7 +82,6 @@ export const getUserByGoogleSub = async (googleSub: string): Promise<any> => {
     const { TABLE_NAME, GSI_GOOGLE_SUB_NAME } = getEnvironmentVariables();
 
     try {
-      const { ListTablesCommand } = await import('@aws-sdk/client-dynamodb');
       const listResult = await db.send(new ListTablesCommand({}));
       console.log('Available tables:', listResult.TableNames);
     } catch (listError) {
