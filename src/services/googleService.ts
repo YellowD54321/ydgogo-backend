@@ -1,9 +1,10 @@
 import { OAuth2Client } from 'google-auth-library';
 import { GOOGLE_TOKEN_ISSUERS } from '@/constants';
-import { QueryCommand, BatchWriteCommand } from '@aws-sdk/lib-dynamodb';
+import { QueryCommand, BatchWriteCommand, GetCommand,  } from '@aws-sdk/lib-dynamodb';
 import { getDynamoDBClient, getEnvironmentVariables } from '@/utils';
 import { v7 as uuidv7 } from 'uuid';
 import { USER_CONFIG } from '@/constants/db';
+import { ListTablesCommand } from '@aws-sdk/client-dynamodb';
 
 export interface GoogleUserInfo {
   sub: string;
@@ -81,7 +82,6 @@ export const getUserByGoogleSub = async (googleSub: string): Promise<any> => {
     const { TABLE_NAME, GSI_GOOGLE_SUB_NAME } = getEnvironmentVariables();
 
     try {
-      const { ListTablesCommand } = await import('@aws-sdk/client-dynamodb');
       const listResult = await db.send(new ListTablesCommand({}));
       console.log('Available tables:', listResult.TableNames);
     } catch (listError) {
@@ -175,6 +175,28 @@ export const createNewUser = async (
     };
   } catch (error) {
     console.error('Error createNewUser:', error);
+    throw error;
+  }
+};
+
+export const getUserProfile = async (userId: string): Promise<any> => {
+  try {
+    const db = getDynamoDBClient();
+    const { TABLE_NAME } = getEnvironmentVariables();
+
+    const params = {
+      TableName: TABLE_NAME,
+      Key: {
+        PK: `${USER_CONFIG.PK_PREFIX}${userId}`,
+        SK: USER_CONFIG.SK_PROFILE,
+      },
+    };
+
+    const result = await db.send(new GetCommand(params));
+
+    return result.Item || null;
+  } catch (error) {
+    console.error('Error getUserProfile:', error);
     throw error;
   }
 };

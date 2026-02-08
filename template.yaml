@@ -14,6 +14,11 @@ Parameters:
     Description: Google OAuth Client ID
     NoEcho: true
     Default: ''
+  JwtSecret:
+    Type: String
+    Description: JWT Secret Key for token signing
+    NoEcho: true
+    Default: ''
 
 Resources:
   # DynamoDB 資料表 - 單表設計
@@ -75,7 +80,7 @@ Resources:
           Type: Api
           Properties:
             Path: /login/googleOauth
-            Method: GET
+            Method: POST
       Environment:
         Variables:
           NODE_OPTIONS: '--enable-source-maps'
@@ -83,6 +88,7 @@ Resources:
           GSI_GOOGLE_SUB_NAME: 'byGoogleSub-gsi'
           STAGE: !Ref Stage
           GOOGLE_CLIENT_ID: !Ref GoogleClientId
+          JWT_SECRET: !Ref JwtSecret
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref YdgogoTable
