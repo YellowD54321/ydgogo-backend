@@ -5,6 +5,7 @@
   "private": true,
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.398.0",
+    "@aws-sdk/client-ssm": "^3.994.0",
     "@aws-sdk/lib-dynamodb": "^3.398.0",
     "google-auth-library": "^10.1.0",
     "jsonwebtoken": "^9.0.3",
@@ -40,7 +41,9 @@
     "lint:fix": "eslint src --ext .ts,.tsx --fix",
     "sam:build": "sam build",
     "sam:validate": "sam validate",
-    "sam:local:api": "npx dotenv sam local start-api",
+    "db:up": "docker-compose up -d",
+    "db:down": "docker-compose down",
+    "sam:local:api": "npx dotenv sam local start-api --docker-network lambda-local-net",
     "sam:local:test": "npx dotenv sam local invoke googleRegisterFunction --event events/event-googleRegister.json",
     "sam:deploy:dev": "sam build && sam deploy --config-env dev",
     "sam:deploy:prod": "sam build && sam deploy --config-env prod",

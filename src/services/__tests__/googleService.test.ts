@@ -144,7 +144,7 @@ describe('Google Service', () => {
       delete process.env['GOOGLE_CLIENT_ID'];
 
       await expect(verifyGoogleIdToken(mockValidToken)).rejects.toThrow(
-        'GOOGLE_CLIENT_ID environment variable is not set'
+        'GOOGLE_CLIENT_ID is not configured'
       );
     });
   });

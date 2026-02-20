@@ -39,7 +39,7 @@ export const googleLoginHandler = async (
 
     const userId = authItem.PK.replace('USER#', '');
 
-    const token = generateToken({
+    const token = await generateToken({
       userId,
       email: authItem.email,
     });
