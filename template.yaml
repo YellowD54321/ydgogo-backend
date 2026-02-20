@@ -150,7 +150,9 @@ Resources:
           GSI_GOOGLE_SUB_NAME: 'byGoogleSub-gsi'
           STAGE: !Ref Stage
           GOOGLE_CLIENT_ID: !Ref GoogleClientId
+          GOOGLE_CLIENT_ID_PARAM: '/ydgogo/google-client-id'
           JWT_SECRET: !Ref JwtSecret
+          JWT_SECRET_PARAM: '/ydgogo/jwt-secret'
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref YdgogoTable
@@ -167,6 +169,13 @@ Resources:
               Resource:
                 - !GetAtt YdgogoTable.Arn
                 - !Sub '${YdgogoTable.Arn}/index/*'
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - ssm:GetParameter
+              Resource:
+                - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/ydgogo/*'
 
   googleRegisterFunction:
     Type: AWS::Serverless::Function
@@ -201,6 +210,7 @@ Resources:
           GSI_GOOGLE_SUB_NAME: 'byGoogleSub-gsi'
           STAGE: !Ref Stage
           GOOGLE_CLIENT_ID: !Ref GoogleClientId
+          GOOGLE_CLIENT_ID_PARAM: '/ydgogo/google-client-id'
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref YdgogoTable
@@ -218,6 +228,13 @@ Resources:
               Resource:
                 - !GetAtt YdgogoTable.Arn
                 - !Sub '${YdgogoTable.Arn}/index/*'
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - ssm:GetParameter
+              Resource:
+                - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/ydgogo/*'
 
   ApplicationResourceGroup:
     Type: AWS::ResourceGroups::Group

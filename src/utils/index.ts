@@ -4,16 +4,20 @@ import { APIGatewayProxyResult } from 'aws-lambda';
 
 let dynamoDBClient: DynamoDBDocumentClient | null = null;
 
-const dynamoDBClientOptions = {
-  endpoint: 'http://ddb-local:8000',
-  credentials: {
-    accessKeyId: 'dummyKeyId',
-    secretAccessKey: 'dummySecretKey',
-  },
-};
-
 export const createDynamoDBClient = () => {
-  const ddbClient = new DynamoDBClient(dynamoDBClientOptions);
+  const isLocal = process.env['AWS_SAM_LOCAL'] === 'true';
+
+  const options = isLocal
+    ? {
+        endpoint: 'http://ddb-local:8000',
+        credentials: {
+          accessKeyId: 'dummyKeyId',
+          secretAccessKey: 'dummySecretKey',
+        },
+      }
+    : {};
+
+  const ddbClient = new DynamoDBClient(options);
   return DynamoDBDocumentClient.from(ddbClient);
 };
 

@@ -1,30 +1,20 @@
 import jwt from 'jsonwebtoken';
+import { getJwtSecret } from '@/services/ssmService';
 
 export interface JwtPayload {
   userId: string;
   email: string;
 }
 
-const getJwtSecret = (): string => {
-  const secret = process.env['JWT_SECRET'];
-
-  if (!secret) {
-    throw new Error('JWT_SECRET environment variable is not set');
-  }
-
-  return secret;
-};
-
-export const generateToken = (payload: JwtPayload): string => {
-  const secret = getJwtSecret();
+export const generateToken = async (payload: JwtPayload): Promise<string> => {
+  const secret = await getJwtSecret();
   const expiresIn = '7d';
 
   return jwt.sign(payload, secret, { expiresIn });
 };
 
-export const verifyToken = (token: string): JwtPayload => {
-  const secret = getJwtSecret();
+export const verifyToken = async (token: string): Promise<JwtPayload> => {
+  const secret = await getJwtSecret();
 
   return jwt.verify(token, secret) as JwtPayload;
 };
-

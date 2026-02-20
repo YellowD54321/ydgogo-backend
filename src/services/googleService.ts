@@ -1,29 +1,29 @@
 import { OAuth2Client } from 'google-auth-library';
 import { GOOGLE_TOKEN_ISSUERS } from '@/constants';
-import { QueryCommand, BatchWriteCommand, GetCommand,  } from '@aws-sdk/lib-dynamodb';
+import { QueryCommand, BatchWriteCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
 import { getDynamoDBClient, getEnvironmentVariables } from '@/utils';
+import { getGoogleClientId } from '@/services/ssmService';
 import { v7 as uuidv7 } from 'uuid';
 import { USER_CONFIG } from '@/constants/db';
-import { ListTablesCommand } from '@aws-sdk/client-dynamodb';
 
 export interface GoogleUserInfo {
   sub: string;
   email: string;
 }
 
-/**
- * 懶加載 OAuth2Client 實例
- */
-const getOAuth2Client = (): OAuth2Client => {
-  const googleClientId = process.env['GOOGLE_CLIENT_ID'];
+let cachedOAuth2Client: OAuth2Client | null = null;
+let cachedClientId: string | null = null;
 
-  if (!googleClientId) {
-    throw new Error('GOOGLE_CLIENT_ID environment variable is not set');
+const getOAuth2Client = async (): Promise<OAuth2Client> => {
+  const googleClientId = await getGoogleClientId();
+
+  if (cachedOAuth2Client && cachedClientId === googleClientId) {
+    return cachedOAuth2Client;
   }
 
-  const client = new OAuth2Client(googleClientId);
-
-  return client;
+  cachedOAuth2Client = new OAuth2Client(googleClientId);
+  cachedClientId = googleClientId;
+  return cachedOAuth2Client;
 };
 
 /**
@@ -36,8 +36,8 @@ export const verifyGoogleIdToken = async (
   idToken: string
 ): Promise<GoogleUserInfo> => {
   try {
-    const oauthClient = getOAuth2Client();
-    const googleClientId = process.env['GOOGLE_CLIENT_ID']!;
+    const oauthClient = await getOAuth2Client();
+    const googleClientId = await getGoogleClientId();
 
     const ticket = await oauthClient.verifyIdToken({
       idToken,
@@ -80,13 +80,6 @@ export const getUserByGoogleSub = async (googleSub: string): Promise<any> => {
   try {
     const db = getDynamoDBClient();
     const { TABLE_NAME, GSI_GOOGLE_SUB_NAME } = getEnvironmentVariables();
-
-    try {
-      const listResult = await db.send(new ListTablesCommand({}));
-      console.log('Available tables:', listResult.TableNames);
-    } catch (listError) {
-      console.error('Error listing tables:', listError);
-    }
 
     const params = {
       TableName: TABLE_NAME,
