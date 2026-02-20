@@ -39,7 +39,7 @@ region = "ap-southeast-2"
 confirm_changeset = true
 capabilities = "CAPABILITY_IAM"
 disable_rollback = true
-parameter_overrides = "Stage=\"dev\" GoogleClientId=\"{{resolve:ssm:/ydgogo/google-client-id}}\""
+parameter_overrides = "Stage=\"dev\" GoogleClientId=\"{{resolve:ssm:/ydgogo/google-client-id}}\" JwtSecret=\"{{resolve:ssm:/ydgogo/jwt-secret}}\" DomainName=\"api.go-garret.com\" HostedZoneId=\"Z0976576I21HTVFIA8HE\""
 image_repositories = []
 
 [prod.deploy.parameters]
@@ -50,5 +50,5 @@ region = "ap-southeast-2"
 confirm_changeset = true
 capabilities = "CAPABILITY_IAM"
 disable_rollback = true
-parameter_overrides = "Stage=\"prod\" GoogleClientId=\"{{resolve:ssm:/ydgogo/google-client-id}}\""
+parameter_overrides = "Stage=\"prod\" GoogleClientId=\"{{resolve:ssm:/ydgogo/google-client-id}}\" JwtSecret=\"{{resolve:ssm:/ydgogo/jwt-secret}}\" DomainName=\"api.go-garret.com\" HostedZoneId=\"Z0976576I21HTVFIA8HE\""
 image_repositories = []
