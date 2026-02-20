@@ -19,8 +19,69 @@ Parameters:
     Description: JWT Secret Key for token signing
     NoEcho: true
     Default: ''
+  DomainName:
+    Type: String
+    Default: ''
+    Description: Custom domain name for API Gateway (e.g. api.go-garret.com)
+  HostedZoneId:
+    Type: String
+    Default: ''
+    Description: Route 53 Hosted Zone ID for the domain
+
+Conditions:
+  HasCustomDomain: !Not [!Equals [!Ref DomainName, '']]
 
 Resources:
+  ApiCertificate:
+    Type: AWS::CertificateManager::Certificate
+    Condition: HasCustomDomain
+    Properties:
+      DomainName: !Ref DomainName
+      ValidationMethod: DNS
+      DomainValidationOptions:
+        - DomainName: !Ref DomainName
+          HostedZoneId: !Ref HostedZoneId
+
+  YdgogoApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: !Ref Stage
+      TracingEnabled: true
+      Cors:
+        AllowMethods: "'*'"
+        AllowHeaders: "'*'"
+        AllowOrigin: "'*'"
+
+  ApiCustomDomain:
+    Type: AWS::ApiGateway::DomainName
+    Condition: HasCustomDomain
+    Properties:
+      DomainName: !Ref DomainName
+      RegionalCertificateArn: !Ref ApiCertificate
+      EndpointConfiguration:
+        Types:
+          - REGIONAL
+
+  ApiBasePathMapping:
+    Type: AWS::ApiGateway::BasePathMapping
+    Condition: HasCustomDomain
+    DependsOn: YdgogoApiStage
+    Properties:
+      DomainName: !Ref ApiCustomDomain
+      RestApiId: !Ref YdgogoApi
+      Stage: !Ref Stage
+
+  DnsRecord:
+    Type: AWS::Route53::RecordSet
+    Condition: HasCustomDomain
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      Name: !Ref DomainName
+      Type: A
+      AliasTarget:
+        DNSName: !GetAtt ApiCustomDomain.RegionalDomainName
+        HostedZoneId: !GetAtt ApiCustomDomain.RegionalHostedZoneId
+
   # DynamoDB 資料表 - 單表設計
   YdgogoTable:
     Type: AWS::DynamoDB::Table
@@ -79,6 +140,7 @@ Resources:
         Api:
           Type: Api
           Properties:
+            RestApiId: !Ref YdgogoApi
             Path: /login/googleOauth
             Method: POST
       Environment:
@@ -129,6 +191,7 @@ Resources:
         Api:
           Type: Api
           Properties:
+            RestApiId: !Ref YdgogoApi
             Path: /register/googleOauth
             Method: POST
       Environment:
@@ -173,7 +236,12 @@ Resources:
 Outputs:
   WebEndpoint:
     Description: API Gateway endpoint URL for deployment stage
-    Value: !Sub 'https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/'
+    Value: !Sub 'https://${YdgogoApi}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/'
+
+  CustomDomainEndpoint:
+    Condition: HasCustomDomain
+    Description: Custom domain endpoint URL
+    Value: !Sub 'https://${DomainName}/'
 
   YdgogoTableName:
     Description: Name of the DynamoDB table for all data
@@ -181,16 +249,8 @@ Outputs:
     Export:
       Name: !Sub '${AWS::StackName}-${Stage}-YdgogoTable'
 
-# # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
   Function:
     Tracing: Active
-    # You can add LoggingConfig parameters such as the Logformat, Log Group, and SystemLogLevel or ApplicationLogLevel. Learn more here https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html#sam-function-loggingconfig.
     LoggingConfig:
       LogFormat: JSON
-  Api:
-    TracingEnabled: true
-    Cors:
-      AllowMethods: "'*'"
-      AllowHeaders: "'*'"
-      AllowOrigin: "'*'"
