@@ -236,6 +236,262 @@ Resources:
               Resource:
                 - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/ydgogo/*'
 
+  # Records CRUD Lambda Functions
+  listRecordsFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: 'es2020'
+        Sourcemap: true
+        EntryPoints:
+          - src/handlers/records/listRecords.ts
+    Properties:
+      CodeUri: .
+      Handler: dist/handlers/records/listRecords.listRecordsHandler
+      Runtime: nodejs22.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: List records handler
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            RestApiId: !Ref YdgogoApi
+            Path: /records
+            Method: GET
+      Environment:
+        Variables:
+          NODE_OPTIONS: '--enable-source-maps'
+          TABLE_NAME: !Ref YdgogoTable
+          STAGE: !Ref Stage
+          JWT_SECRET: !Ref JwtSecret
+          JWT_SECRET_PARAM: '/ydgogo/jwt-secret'
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref YdgogoTable
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:Query
+              Resource:
+                - !GetAtt YdgogoTable.Arn
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - ssm:GetParameter
+              Resource:
+                - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/ydgogo/*'
+
+  getRecordFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: 'es2020'
+        Sourcemap: true
+        EntryPoints:
+          - src/handlers/records/getRecord.ts
+    Properties:
+      CodeUri: .
+      Handler: dist/handlers/records/getRecord.getRecordHandler
+      Runtime: nodejs22.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: Get single record handler
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            RestApiId: !Ref YdgogoApi
+            Path: /records/{recordId}
+            Method: GET
+      Environment:
+        Variables:
+          NODE_OPTIONS: '--enable-source-maps'
+          TABLE_NAME: !Ref YdgogoTable
+          STAGE: !Ref Stage
+          JWT_SECRET: !Ref JwtSecret
+          JWT_SECRET_PARAM: '/ydgogo/jwt-secret'
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref YdgogoTable
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+              Resource:
+                - !GetAtt YdgogoTable.Arn
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - ssm:GetParameter
+              Resource:
+                - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/ydgogo/*'
+
+  createRecordFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: 'es2020'
+        Sourcemap: true
+        EntryPoints:
+          - src/handlers/records/createRecord.ts
+    Properties:
+      CodeUri: .
+      Handler: dist/handlers/records/createRecord.createRecordHandler
+      Runtime: nodejs22.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: Create record handler
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            RestApiId: !Ref YdgogoApi
+            Path: /records
+            Method: POST
+      Environment:
+        Variables:
+          NODE_OPTIONS: '--enable-source-maps'
+          TABLE_NAME: !Ref YdgogoTable
+          STAGE: !Ref Stage
+          JWT_SECRET: !Ref JwtSecret
+          JWT_SECRET_PARAM: '/ydgogo/jwt-secret'
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref YdgogoTable
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:PutItem
+              Resource:
+                - !GetAtt YdgogoTable.Arn
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - ssm:GetParameter
+              Resource:
+                - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/ydgogo/*'
+
+  updateRecordFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: 'es2020'
+        Sourcemap: true
+        EntryPoints:
+          - src/handlers/records/updateRecord.ts
+    Properties:
+      CodeUri: .
+      Handler: dist/handlers/records/updateRecord.updateRecordHandler
+      Runtime: nodejs22.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: Update record handler
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            RestApiId: !Ref YdgogoApi
+            Path: /records/{recordId}
+            Method: PUT
+      Environment:
+        Variables:
+          NODE_OPTIONS: '--enable-source-maps'
+          TABLE_NAME: !Ref YdgogoTable
+          STAGE: !Ref Stage
+          JWT_SECRET: !Ref JwtSecret
+          JWT_SECRET_PARAM: '/ydgogo/jwt-secret'
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref YdgogoTable
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:UpdateItem
+              Resource:
+                - !GetAtt YdgogoTable.Arn
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - ssm:GetParameter
+              Resource:
+                - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/ydgogo/*'
+
+  deleteRecordFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: 'es2020'
+        Sourcemap: true
+        EntryPoints:
+          - src/handlers/records/deleteRecord.ts
+    Properties:
+      CodeUri: .
+      Handler: dist/handlers/records/deleteRecord.deleteRecordHandler
+      Runtime: nodejs22.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: Delete record handler (soft delete)
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            RestApiId: !Ref YdgogoApi
+            Path: /records/{recordId}
+            Method: DELETE
+      Environment:
+        Variables:
+          NODE_OPTIONS: '--enable-source-maps'
+          TABLE_NAME: !Ref YdgogoTable
+          STAGE: !Ref Stage
+          JWT_SECRET: !Ref JwtSecret
+          JWT_SECRET_PARAM: '/ydgogo/jwt-secret'
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref YdgogoTable
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:UpdateItem
+              Resource:
+                - !GetAtt YdgogoTable.Arn
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - ssm:GetParameter
+              Resource:
+                - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/ydgogo/*'
+
   ApplicationResourceGroup:
     Type: AWS::ResourceGroups::Group
     Properties:
