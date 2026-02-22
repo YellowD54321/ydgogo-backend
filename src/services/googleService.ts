@@ -1,7 +1,7 @@
 import { OAuth2Client } from 'google-auth-library';
 import { GOOGLE_TOKEN_ISSUERS } from '@/constants';
 import { QueryCommand, BatchWriteCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
-import { getDynamoDBClient, getEnvironmentVariables } from '@/utils';
+import { getDynamoDBClient, getTableName, getGsiGoogleSubName } from '@/utils';
 import { getGoogleClientId } from '@/services/ssmService';
 import { v7 as uuidv7 } from 'uuid';
 import { USER_CONFIG } from '@/constants/db';
@@ -79,11 +79,12 @@ export const verifyGoogleIdToken = async (
 export const getUserByGoogleSub = async (googleSub: string): Promise<any> => {
   try {
     const db = getDynamoDBClient();
-    const { TABLE_NAME, GSI_GOOGLE_SUB_NAME } = getEnvironmentVariables();
+    const tableName = getTableName();
+    const gsiName = getGsiGoogleSubName();
 
     const params = {
-      TableName: TABLE_NAME,
-      IndexName: GSI_GOOGLE_SUB_NAME,
+      TableName: tableName,
+      IndexName: gsiName,
       KeyConditionExpression: 'googleSub = :sub',
       ExpressionAttributeValues: {
         ':sub': googleSub,
@@ -123,7 +124,7 @@ export const createNewUser = async (
 ): Promise<any> => {
   try {
     const db = getDynamoDBClient();
-    const { TABLE_NAME } = getEnvironmentVariables();
+    const tableName = getTableName();
 
     const userId = uuidv7();
     const userPK = `${USER_CONFIG.PK_PREFIX}${userId}`;
@@ -156,7 +157,7 @@ export const createNewUser = async (
 
     const batchParams = {
       RequestItems: {
-        [TABLE_NAME]: requestItems,
+        [tableName]: requestItems,
       },
     };
 
@@ -175,10 +176,10 @@ export const createNewUser = async (
 export const getUserProfile = async (userId: string): Promise<any> => {
   try {
     const db = getDynamoDBClient();
-    const { TABLE_NAME } = getEnvironmentVariables();
+    const tableName = getTableName();
 
     const params = {
-      TableName: TABLE_NAME,
+      TableName: tableName,
       Key: {
         PK: `${USER_CONFIG.PK_PREFIX}${userId}`,
         SK: USER_CONFIG.SK_PROFILE,
