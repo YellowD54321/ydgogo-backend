@@ -14,7 +14,6 @@ jest.mock('@aws-sdk/lib-dynamodb', () => ({
   PutCommand: jest.fn().mockImplementation((params) => params),
   GetCommand: jest.fn().mockImplementation((params) => params),
   UpdateCommand: jest.fn().mockImplementation((params) => params),
-  DeleteCommand: jest.fn().mockImplementation((params) => params),
 }));
 
 const MOCK_TABLE = 'test-table';
@@ -81,6 +80,7 @@ describe('recordService', () => {
           TableName: MOCK_TABLE,
           KeyConditionExpression:
             'PK = :pk AND begins_with(SK, :skPrefix)',
+          FilterExpression: 'attribute_not_exists(deletedAt)',
           ExpressionAttributeValues: {
             ':pk': `${USER_CONFIG.PK_PREFIX}${MOCK_USER_ID}`,
             ':skPrefix': RECORD_CONFIG.SK_PREFIX,
@@ -186,6 +186,23 @@ describe('recordService', () => {
       mockSend.mockResolvedValue({});
 
       const result = await getRecord(MOCK_USER_ID, 'non-existent');
+
+      expect(result).toBeNull();
+    });
+
+    it('should return null when record is soft-deleted', async () => {
+      const mockItem = {
+        recordId: MOCK_RECORD_ID,
+        title: 'Deleted Game',
+        gameTree: MOCK_GAME_TREE,
+        createdAt: MOCK_DATE,
+        updatedAt: MOCK_DATE,
+        deletedAt: MOCK_DATE,
+      };
+
+      mockSend.mockResolvedValue({ Item: mockItem });
+
+      const result = await getRecord(MOCK_USER_ID, MOCK_RECORD_ID);
 
       expect(result).toBeNull();
     });
@@ -314,7 +331,7 @@ describe('recordService', () => {
   });
 
   describe('deleteRecord', () => {
-    it('should return true when record is deleted', async () => {
+    it('should soft-delete record and return true', async () => {
       mockSend.mockResolvedValue({});
 
       const result = await deleteRecord(MOCK_USER_ID, MOCK_RECORD_ID);
@@ -328,7 +345,12 @@ describe('recordService', () => {
             PK: `${USER_CONFIG.PK_PREFIX}${MOCK_USER_ID}`,
             SK: `${RECORD_CONFIG.SK_PREFIX}${MOCK_RECORD_ID}`,
           },
-          ConditionExpression: 'attribute_exists(PK)',
+          UpdateExpression: 'SET deletedAt = :deletedAt',
+          ConditionExpression:
+            'attribute_exists(PK) AND attribute_not_exists(deletedAt)',
+          ExpressionAttributeValues: {
+            ':deletedAt': MOCK_DATE,
+          },
         })
       );
     });

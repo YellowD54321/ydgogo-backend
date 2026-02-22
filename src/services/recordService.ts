@@ -3,7 +3,6 @@ import {
   PutCommand,
   GetCommand,
   UpdateCommand,
-  DeleteCommand,
 } from '@aws-sdk/lib-dynamodb';
 import { getDynamoDBClient, getTableName } from '@/utils';
 import { USER_CONFIG, RECORD_CONFIG } from '@/constants/db';
@@ -40,6 +39,7 @@ export const listRecords = async (
   const params: Record<string, unknown> = {
     TableName: tableName,
     KeyConditionExpression: 'PK = :pk AND begins_with(SK, :skPrefix)',
+    FilterExpression: 'attribute_not_exists(deletedAt)',
     ExpressionAttributeValues: {
       ':pk': `${USER_CONFIG.PK_PREFIX}${userId}`,
       ':skPrefix': RECORD_CONFIG.SK_PREFIX,
@@ -98,7 +98,7 @@ export const getRecord = async (
     })
   );
 
-  if (!result.Item) return null;
+  if (!result.Item || result.Item['deletedAt']) return null;
 
   return {
     recordId: result.Item['recordId'] as string,
@@ -197,15 +197,22 @@ export const deleteRecord = async (
   const db = getDynamoDBClient();
   const tableName = getTableName();
 
+  const now = new Date().toISOString();
+
   try {
     await db.send(
-      new DeleteCommand({
+      new UpdateCommand({
         TableName: tableName,
         Key: {
           PK: `${USER_CONFIG.PK_PREFIX}${userId}`,
           SK: `${RECORD_CONFIG.SK_PREFIX}${recordId}`,
         },
-        ConditionExpression: 'attribute_exists(PK)',
+        UpdateExpression: 'SET deletedAt = :deletedAt',
+        ConditionExpression:
+          'attribute_exists(PK) AND attribute_not_exists(deletedAt)',
+        ExpressionAttributeValues: {
+          ':deletedAt': now,
+        },
       })
     );
 
