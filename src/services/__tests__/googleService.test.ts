@@ -27,10 +27,8 @@ jest.mock('@/utils', () => ({
   getDynamoDBClient: jest.fn(() => ({
     send: mockSend,
   })),
-  getEnvironmentVariables: jest.fn(() => ({
-    TABLE_NAME: mockTableName,
-    GSI_GOOGLE_SUB_NAME: mockGsiName,
-  })),
+  getTableName: jest.fn(() => mockTableName),
+  getGsiGoogleSubName: jest.fn(() => mockGsiName),
 }));
 
 jest.mock('uuid', () => ({

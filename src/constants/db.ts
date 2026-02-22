@@ -3,3 +3,7 @@ export const USER_CONFIG = {
   SK_PROFILE: 'PROFILE',
   AUTH_GOOGLE: 'AUTH#GOOGLE',
 };
+
+export const RECORD_CONFIG = {
+  SK_PREFIX: 'RECORD#',
+};

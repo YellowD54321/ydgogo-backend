@@ -28,33 +28,36 @@ export const getDynamoDBClient = () => {
   return dynamoDBClient;
 };
 
-export const getEnvironmentVariables = () => {
+export const getTableName = (): string => {
   const tableName = process.env['TABLE_NAME'];
-  if (!tableName) {
+  if (!tableName)
     throw new Error('TABLE_NAME environment variable is required');
-  }
-
-  const stage = process.env['STAGE'];
-  if (!stage) {
-    throw new Error('STAGE environment variable is required');
-  }
-
-  const gsiGoogleSubName = process.env['GSI_GOOGLE_SUB_NAME'];
-  if (!gsiGoogleSubName) {
-    throw new Error('GSI_GOOGLE_SUB_NAME environment variable is required');
-  }
-
-  return {
-    TABLE_NAME: tableName,
-    STAGE: stage,
-    GSI_GOOGLE_SUB_NAME: gsiGoogleSubName,
-  };
+  return tableName;
 };
+
+export const getStage = (): string => {
+  const stage = process.env['STAGE'];
+  if (!stage) throw new Error('STAGE environment variable is required');
+  return stage;
+};
+
+export const getGsiGoogleSubName = (): string => {
+  const gsiGoogleSubName = process.env['GSI_GOOGLE_SUB_NAME'];
+  if (!gsiGoogleSubName)
+    throw new Error('GSI_GOOGLE_SUB_NAME environment variable is required');
+  return gsiGoogleSubName;
+};
+
+export const getEnvironmentVariables = () => ({
+  TABLE_NAME: getTableName(),
+  STAGE: getStage(),
+  GSI_GOOGLE_SUB_NAME: getGsiGoogleSubName(),
+});
 
 export const createResponse = (
   statusCode: number,
   body: Record<string, unknown> | string | null,
-  additionalHeaders?: Record<string, string>
+  additionalHeaders?: Record<string, string>,
 ): APIGatewayProxyResult => {
   const defaultHeaders = {
     'Content-Type': 'application/json',
@@ -76,7 +79,7 @@ export const createResponse = (
 export const createErrorResponse = (
   statusCode: number,
   error: string,
-  details?: any
+  details?: any,
 ): APIGatewayProxyResult => {
   return createResponse(statusCode, {
     error,
@@ -86,7 +89,7 @@ export const createErrorResponse = (
 
 export const createSuccessResponse = (
   statusCode: number = 200,
-  data: any
+  data: any,
 ): APIGatewayProxyResult => {
   return createResponse(statusCode, data);
 };
