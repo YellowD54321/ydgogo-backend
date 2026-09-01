@@ -9,6 +9,7 @@
     "@aws-sdk/lib-dynamodb": "^3.398.0",
     "google-auth-library": "^10.1.0",
     "jsonwebtoken": "^9.0.3",
+    "sharp": "^0.35.4",
     "uuid": "^11.1.0"
   },
   "devDependencies": {
@@ -49,7 +50,8 @@
     "sam:deploy:prod": "sam build && sam deploy --config-env prod",
     "dev": "npm run sam:local:api",
     "deploy:dev": "npm run sam:deploy:dev",
-    "deploy:prod": "npm run sam:deploy:prod"
+    "deploy:prod": "npm run sam:deploy:prod",
+    "dev:image": "node --no-experimental-strip-types -r ts-node/register -r tsconfig-paths/register src/scripts/localImageServer.ts"
   },
   "jest": {
     "preset": "ts-jest",
