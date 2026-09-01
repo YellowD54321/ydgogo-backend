@@ -1,0 +1,125 @@
+{
+  "fileName": "sample-board",
+  "gameTree": {
+    "rootNodeId": "ROOT",
+    "pointer": {
+      "currentNodeId": "9",
+      "currentMoveNumber": 9,
+      "totalMoveNumber": 10
+    },
+    "nodes": {
+      "ROOT": {
+        "id": "ROOT",
+        "x": -1,
+        "y": -1,
+        "color": "empty",
+        "currentMoveNumber": 0,
+        "capturedGroups": [],
+        "parentId": null,
+        "childrenIds": ["1"]
+      },
+      "1": {
+        "id": "1",
+        "x": 3,
+        "y": 4,
+        "color": "black",
+        "currentMoveNumber": 1,
+        "capturedGroups": [],
+        "parentId": "ROOT",
+        "childrenIds": ["2"]
+      },
+      "2": {
+        "id": "2",
+        "x": 15,
+        "y": 3,
+        "color": "white",
+        "currentMoveNumber": 2,
+        "capturedGroups": [],
+        "parentId": "1",
+        "childrenIds": ["3"]
+      },
+      "3": {
+        "id": "3",
+        "x": 3,
+        "y": 15,
+        "color": "black",
+        "currentMoveNumber": 3,
+        "capturedGroups": [],
+        "parentId": "2",
+        "childrenIds": ["4"]
+      },
+      "4": {
+        "id": "4",
+        "x": 15,
+        "y": 15,
+        "color": "white",
+        "currentMoveNumber": 4,
+        "capturedGroups": [],
+        "parentId": "3",
+        "childrenIds": ["5"]
+      },
+      "5": {
+        "id": "5",
+        "x": 9,
+        "y": 9,
+        "color": "black",
+        "currentMoveNumber": 5,
+        "capturedGroups": [],
+        "parentId": "4",
+        "childrenIds": ["6"]
+      },
+      "6": {
+        "id": "6",
+        "x": 0,
+        "y": 0,
+        "color": "white",
+        "currentMoveNumber": 6,
+        "capturedGroups": [],
+        "parentId": "5",
+        "childrenIds": ["7"]
+      },
+      "7": {
+        "id": "7",
+        "x": 1,
+        "y": 0,
+        "color": "black",
+        "currentMoveNumber": 7,
+        "capturedGroups": [],
+        "parentId": "6",
+        "childrenIds": ["8"]
+      },
+      "8": {
+        "id": "8",
+        "x": 2,
+        "y": 2,
+        "color": "white",
+        "currentMoveNumber": 8,
+        "capturedGroups": [],
+        "parentId": "7",
+        "childrenIds": ["9", "10"]
+      },
+      "9": {
+        "id": "9",
+        "x": 0,
+        "y": 1,
+        "color": "black",
+        "currentMoveNumber": 9,
+        "capturedGroups": [
+          { "stones": [{ "x": 0, "y": 0 }], "liberties": [], "color": "white" }
+        ],
+        "parentId": "8",
+        "childrenIds": []
+      },
+      "10": {
+        "id": "10",
+        "x": 16,
+        "y": 9,
+        "color": "black",
+        "currentMoveNumber": 9,
+        "capturedGroups": [],
+        "parentId": "8",
+        "childrenIds": []
+      }
+    }
+  }
+}

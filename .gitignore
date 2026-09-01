@@ -36,3 +36,6 @@ coverage/
 
 # OS generated files
 .DS_Store
+
+# Generated board images (local testing)
+generated-images/
